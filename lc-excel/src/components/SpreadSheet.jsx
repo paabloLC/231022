@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { useSpreadSheet } from '../hooks/useSpreadSheet';
+import { getColumn } from '../utils';
 
-const FIRST_CHAR_CODE = 65;
+
 
 const range = length => Array.from({length}, (_, i) => i);
-const getColumn = i => String.fromCharCode(FIRST_CHAR_CODE + i);
 
 export function SpreadSheet ({ rows, columns }) {
   const {cells, updateCell } = useSpreadSheet({columns, rows});
@@ -20,7 +21,12 @@ export function SpreadSheet ({ rows, columns }) {
           <td className="bg-slate-300 text-center" key={`first-${row}`}>{row}</td>
           {range(columns).map(column => {
             return <td key={column}>
-              <Cell x={column} y={row} cell={cells[column][row]} />
+              <Cell 
+                x={column} 
+                y={row} 
+                cell={cells[column][row]} 
+                update={ (value) => updateCell({ x: column, y: row, value })}
+                />
             </td>
           })}
         </tr>
@@ -29,4 +35,22 @@ export function SpreadSheet ({ rows, columns }) {
   )
 }
 
-const Cell = ({ x, y, cell }) => <span contentEditable>{cell}</span>
+const Cell = ({ x, y, cell, update }) => {
+  const [isInput, setIsInput] = useState(false)
+
+  if (isInput) {
+    return (
+      <input
+        autoFocus
+        className='w-full'
+        defaultValue={cell.value}
+        onBlur={(evt) => {
+          setIsInput(false)
+          update(evt.target.value)
+        }}
+      />
+    )
+  }
+
+  return <span className="w-full block text-center" onClick={() => setIsInput(true)}>{cell.computedValue}</span>
+}
